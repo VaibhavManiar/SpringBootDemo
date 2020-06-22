@@ -10,10 +10,10 @@ import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
-import org.springframework.kafka.listener.adapter.RecordFilterStrategy;
 import org.springframework.lang.NonNull;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 
 @EnableKafka
@@ -26,8 +26,8 @@ public class KafkaConsumerSpringBootConfig {
     @Value(value = "${kafka.consumer.groupid}")
     private String groupId;
 
-    @Bean
-    public ConsumerFactory<String, String> consumerFactory() {
+    @Bean("kafkaConsumerFactory")
+    public ConsumerFactory<String, String> kafkaConsumerFactory() {
         KafkaConsumerConfig props = new KafkaConsumerConfig();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapAddress)
                 .put(ConsumerConfig.GROUP_ID_CONFIG, groupId)
@@ -40,23 +40,23 @@ public class KafkaConsumerSpringBootConfig {
         return new DefaultKafkaConsumerFactory<>(props);
     }
 
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory(ConsumerFactory<String, String> consumerFactory,
+    @Bean("kafkaListenerContainerFactory")
+    public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory(ConsumerFactory<String, String> kafkaConsumerFactory,
                                                                                                  Function<ConsumerRecord<String, String>, Boolean> kafkaRecordFilter) {
         ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(consumerFactory);
+        factory.setConsumerFactory(kafkaConsumerFactory);
         factory.setRecordFilterStrategy(kafkaRecordFilter::apply);
         return factory;
     }
 
-    @Bean
+    @Bean("kafkaRecordFilter")
     public Function<ConsumerRecord<String, String>, Boolean> kafkaRecordFilter() {
-        return (record) -> Boolean.TRUE;
+        return (record) -> Boolean.FALSE;
     }
 
     public static class KafkaConsumerConfig extends HashMap<String, Object> {
         @NonNull
-        public KafkaConsumerConfig put(String configName, Object configValue) {
+        public KafkaConsumerConfig put(@NonNull String configName, @NonNull Object configValue) {
             super.put(configName, configValue);
             return this;
         }

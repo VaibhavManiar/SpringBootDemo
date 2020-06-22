@@ -7,11 +7,12 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 
 @Service
-@KafkaListener(topics = "test", groupId = "testGroup")
 public class TestKafkaConsumer {
 
-    @KafkaListener(topics = "test", groupId = "testGroup")
+    @KafkaListener(topics = {"test"}, groupId = "testGroup", containerFactory = "kafkaListenerContainerFactory")
     public void listen(@Payload String message, @Header(KafkaHeaders.RECEIVED_PARTITION_ID) int partition) {
-        System.out.println("Received Messasge : [" + message + "]");
+        System.out.println(
+                "Received Message: " + message
+                        + "from partition: " + partition);
     }
 }
